@@ -17,6 +17,10 @@ export const UiMessages = {
     buttonTitle: 'Duplicate (incl. translations)',
     duplicating: 'Duplicating...',
   },
+  copyContent: {
+    buttonTitle: 'Copy content',
+    dialogTitle: 'Copy content',
+  },
   translationsMaintenance: {
     title: 'Translation Maintenance',
     selectSchemaPlaceholder: 'Select schema type',
