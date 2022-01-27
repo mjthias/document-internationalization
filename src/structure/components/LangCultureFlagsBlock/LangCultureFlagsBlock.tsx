@@ -2,11 +2,11 @@ import React from 'react'
 import styled from 'styled-components'
 import {Grid, rem} from '@sanity/ui'
 import flagOverrides from 'part:@sanity/document-internationalization/ui/flags?'
-import { SingleFlag } from './SingleFlag'
 import type {ILanguageObject} from '../../../types'
+import {SingleFlag} from './SingleFlag'
 
-type SizeProps = { size?: number }
-type MissingProps = { missing?: boolean }
+type SizeProps = {size?: number}
+type MissingProps = {missing?: boolean}
 type Props = {
   isMissing?: boolean
   language: ILanguageObject
@@ -17,29 +17,34 @@ const FlagBox = styled.div<SizeProps & MissingProps>`
   grid-column: 1;
   font-family: initial;
   vertical-align: middle;
-  filter: ${props => {
+  filter: ${(props) => {
     if (props.missing) {
       return 'grayscale(100%)'
     }
+    return undefined
   }};
-  font-size: ${props => {
-    const { sizes } = props.theme.sanity.fonts.heading
+  font-size: ${(props) => {
+    const {sizes} = props.theme.sanity.fonts.heading
     if (props.size) {
       return rem(sizes[props.size].fontSize)
     }
+    return undefined
   }};
   &:first-child:not(:last-child) {
-    transform: translateY(-.2em) translateX(${props => {
-      const { space } = props.theme.sanity
-      return rem(-space[3])
-    }});
+    transform: translateY(-0.2em)
+      translateX(
+        ${(props) => {
+          const {space} = props.theme.sanity
+          return rem(-space[3])
+        }}
+      );
   }
   &:last-child:not(:first-child) {
-    transform: translateY(.2em);
+    transform: translateY(0.2em);
   }
 `
 
-export const LangCultureFlagsBlock: React.FC<Props> = ({language,isMissing}) => {
+export const LangCultureFlagsBlock: React.FC<Props> = ({language, isMissing}) => {
   const languageAsVariableName = React.useMemo(
     () => language.id.replace(/[^a-zA-Z]/g, '_'),
     [language.id]

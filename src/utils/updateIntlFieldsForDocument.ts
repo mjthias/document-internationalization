@@ -35,7 +35,7 @@ export async function updateIntlFieldsForDocument(
   currentDocumentTransaction.createIfNotExists({_id: id, _type: type})
   currentDocumentTransaction.patch(id, {
     set: {
-      [fieldName]: languageId,
+      // [fieldName]: languageId,
       ...(isTranslation && config.referenceBehavior !== ReferenceBehavior.DISABLED
         ? {
             [baseRefFieldName]: createSanityReference(

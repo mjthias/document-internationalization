@@ -29,6 +29,12 @@ export const UiMessages = {
     referenceBehaviorMismatch: 'document(s) with mismatched reference behaviors',
     baseLanguageMismatch: 'base document(s) with mismatched language field',
     fix: 'Fix',
+    diffOverview: {
+      title: "What's going to change",
+      description:
+        'Below you will find an overview of the documents we will create, delete and/or modify',
+      confirm: 'Confirm',
+    },
   },
   errors: {
     baseDocumentNotPublished:

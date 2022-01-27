@@ -1,4 +1,5 @@
 import React from 'react'
+import {Stack, Box, Container} from '@sanity/ui'
 import {MaintenanceTabTypeSelector} from '../MaintenanceTabTypeSelector'
 import {useDocumentsInformation} from '../../hooks'
 import {MaintenanceTabResult} from '../MaintenanceTabResult'
@@ -10,11 +11,13 @@ import {
   fixOrphanedDocuments,
   fixTranslationRefs,
 } from '../../utils'
-import {Stack, Box, Container} from '@sanity/ui'
-
+import {DocumentDiff} from '../../../types'
+import {applyDocumentDiffs} from '../../utils/applyDocumentDiff'
+import {MaintenanceTabDiffDialog} from './MaintenanceTabDiffDialog'
 
 export const MaintenanceTabContent = () => {
   const [selectedSchema, setSelectedSchema] = React.useState('')
+  const [diffRequests, setDiffRequests] = React.useState<DocumentDiff[][]>([])
   const {
     pending,
     setPending,
@@ -38,10 +41,11 @@ export const MaintenanceTabContent = () => {
     await fetchInformation(selectedSchema)
   }, [selectedSchema, documents, fetchInformation])
 
-  const onFixMissingLanguageFields = React.useCallback(async () => {
+  const handleFixMissingLanguageFields = React.useCallback(async () => {
     setPending(true)
-    await fixLanguageFields(selectedSchema, documents)
-    await fetchInformation(selectedSchema)
+    const diffs = await fixLanguageFields(selectedSchema, documents)
+    setDiffRequests([diffs])
+    setPending(false)
   }, [selectedSchema, documents, fetchInformation])
 
   const onFixTranslationRefs = React.useCallback(async () => {
@@ -74,6 +78,21 @@ export const MaintenanceTabContent = () => {
     await fetchInformation(selectedSchema)
   }, [selectedSchema, baseDocuments, fetchInformation])
 
+  const handleDiffOverviewConfirm = React.useCallback(
+    async (diffs: DocumentDiff[]) => {
+      for (let i = 0; i < diffs.length; i++) {
+        await applyDocumentDiffs(diffs[i])
+      }
+      await fetchInformation(selectedSchema)
+      setDiffRequests([])
+    },
+    [selectedSchema, fetchInformation]
+  )
+
+  const handleDiffOverviewClose = React.useCallback(() => {
+    setDiffRequests([])
+  }, [diffRequests])
+
   return (
     <Container width={1}>
       <Stack space={2}>
@@ -97,7 +116,7 @@ export const MaintenanceTabContent = () => {
                 pending={pending}
                 count={documentsSummaryInformation.missingLanguageField.length}
                 labelName="missingLanguageField"
-                onClick={onFixMissingLanguageFields}
+                onClick={handleFixMissingLanguageFields}
               />
               <MaintenanceTabResult
                 pending={pending}
@@ -133,6 +152,14 @@ export const MaintenanceTabContent = () => {
           </Box>
         )}
       </Stack>
+
+      {!!diffRequests.length && (
+        <MaintenanceTabDiffDialog
+          diffs={diffRequests}
+          onClose={handleDiffOverviewClose}
+          onConfirm={handleDiffOverviewConfirm}
+        />
+      )}
     </Container>
   )
 }
