@@ -93,7 +93,6 @@ export const useDocumentsInformation = (schema: string) => {
     config,
     documents,
     languages,
-    schema,
     baseDocuments,
     translatedDocuments,
     idStructureMismatchDocuments,
