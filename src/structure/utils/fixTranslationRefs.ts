@@ -1,26 +1,19 @@
 import _ from 'lodash'
+import chunk from 'just-split'
 import {ReferenceBehavior} from '../../constants'
-import {ITranslationRef, Ti18nDocument} from '../../types'
-import {
-  batch,
-  createSanityReference,
-  getBaseIdFromId,
-  getConfig,
-  getLanguageFromId,
-  getSanityClient,
-} from '../../utils'
+import {DocumentDiff, ITranslationRef, Ti18nDocument} from '../../types'
+import {createSanityReference, getBaseIdFromId, getConfig, getLanguageFromId} from '../../utils'
 
 export const fixTranslationRefs = async (
   schema: string,
   baseDocuments: Ti18nDocument[],
   translatedDocuments: Ti18nDocument[]
-) => {
-  const sanityClient = getSanityClient()
+): Promise<DocumentDiff[][]> => {
   const config = getConfig(schema)
   const refsFieldName = config.fieldNames.references
-  await batch(baseDocuments, async (chunk) => {
-    const transaction = sanityClient.transaction()
-    chunk.map(async (d) => {
+
+  return chunk(baseDocuments, 100).reduce<DocumentDiff[][]>((acc, documentsChunk) => {
+    const diffChunk = documentsChunk.map<DocumentDiff>((d) => {
       let translatedRefs: ITranslationRef[] = []
       const relevantTranslations = translatedDocuments.filter(
         (dx) => getBaseIdFromId(dx._id) === d._id
@@ -31,7 +24,7 @@ export const fixTranslationRefs = async (
             const lang = getLanguageFromId(doc._id)
             if (!lang) return null
             return {
-              _key: doc._id,
+              _key: lang,
               ...createSanityReference(
                 doc._id,
                 config.referenceBehavior === ReferenceBehavior.WEAK
@@ -40,10 +33,20 @@ export const fixTranslationRefs = async (
           }, {})
         )
       }
-      transaction.patch(d._id, {
-        set: {[refsFieldName]: translatedRefs},
-      })
+      return {
+        op: 'modify',
+        id: d._id,
+        type: d._type,
+        patches: [
+          {
+            op: 'replace',
+            path: refsFieldName,
+            value: translatedRefs,
+          },
+        ],
+      }
     })
-    await transaction.commit()
-  })
+    acc.push(diffChunk)
+    return acc
+  }, [])
 }

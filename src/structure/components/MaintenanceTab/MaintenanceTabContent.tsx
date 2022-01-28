@@ -37,22 +37,24 @@ export const MaintenanceTabContent = () => {
 
   const onFixIdStructureMismatchDocuments = React.useCallback(async () => {
     setPending(true)
-    await fixIdStructureMismatchDocuments(selectedSchema, documents)
-    await fetchInformation(selectedSchema)
-  }, [selectedSchema, documents, fetchInformation])
+    const diffs = await fixIdStructureMismatchDocuments(selectedSchema, documents)
+    setDiffRequests(diffs)
+    setPending(false)
+  }, [selectedSchema, documents, setPending])
 
   const handleFixMissingLanguageFields = React.useCallback(async () => {
     setPending(true)
     const diffs = await fixLanguageFields(selectedSchema, documents)
-    setDiffRequests([diffs])
+    setDiffRequests(diffs)
     setPending(false)
-  }, [selectedSchema, documents, fetchInformation])
+  }, [selectedSchema, documents, setPending])
 
   const onFixTranslationRefs = React.useCallback(async () => {
     setPending(true)
-    await fixTranslationRefs(selectedSchema, baseDocuments, translatedDocuments)
-    await fetchInformation(selectedSchema)
-  }, [selectedSchema, baseDocuments, translatedDocuments, fetchInformation])
+    const diffs = await fixTranslationRefs(selectedSchema, baseDocuments, translatedDocuments)
+    setDiffRequests(diffs)
+    setPending(false)
+  }, [selectedSchema, baseDocuments, translatedDocuments, setPending])
 
   const onFixBaseDocumntRefs = React.useCallback(async () => {
     setPending(true)
@@ -79,7 +81,7 @@ export const MaintenanceTabContent = () => {
   }, [selectedSchema, baseDocuments, fetchInformation])
 
   const handleDiffOverviewConfirm = React.useCallback(
-    async (diffs: DocumentDiff[]) => {
+    async (diffs: DocumentDiff[][]) => {
       for (let i = 0; i < diffs.length; i++) {
         await applyDocumentDiffs(diffs[i])
       }

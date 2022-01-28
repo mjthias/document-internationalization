@@ -2,7 +2,10 @@ import {ReferenceBehavior} from '../../constants'
 import {Ti18nDocument} from '../../types'
 import {createSanityReference, getBaseIdFromId, getConfig, getSanityClient} from '../../utils'
 
-export const fixBaseDocumentRefs = async (schema: string, translatedDocuments: Ti18nDocument[]) => {
+export const fixBaseDocumentRefs = async (
+  schema: string,
+  translatedDocuments: Ti18nDocument[]
+) => {
   const config = getConfig(schema)
   const sanityClient = getSanityClient()
   if (config.referenceBehavior !== ReferenceBehavior.DISABLED) {

@@ -143,6 +143,7 @@
     "just-split": "^3.0.1",
     "moment": "^2.29.1",
     "pinst": "^2.1.6",
+    "react-uid": "^2.3.1",
     "regenerator-runtime": "^0.13.7",
     "slugify": "^1.4.6"
   },

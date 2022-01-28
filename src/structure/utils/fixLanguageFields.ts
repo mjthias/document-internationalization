@@ -11,12 +11,12 @@ import {
 export const fixLanguageFields = async (
   schema: string,
   documents: Ti18nDocument[]
-): Promise<DocumentDiff[]> => {
+): Promise<DocumentDiff[][]> => {
   const config = getConfig(schema)
   const languages = await getLanguagesFromOption(config.languages)
   const langFieldName = config.fieldNames?.lang
 
-  return compact(
+  const diff = compact(
     documents.map<DocumentDiff | null>((doc) => {
       const schemaObject = getSchema<Ti18nSchema>(doc._type)
       const base =
@@ -40,4 +40,5 @@ export const fixLanguageFields = async (
       return null
     })
   )
+  return [diff]
 }

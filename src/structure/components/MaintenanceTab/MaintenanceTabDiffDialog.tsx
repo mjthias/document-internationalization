@@ -12,6 +12,7 @@ import {
   Code,
   Button,
 } from '@sanity/ui'
+import {useUIDSeed} from 'react-uid'
 import {DocumentDiff} from '../../../types'
 import {UiMessages} from '../../../constants'
 
@@ -22,6 +23,7 @@ type Props = {
 }
 
 export const MaintenanceTabDiffDialog: React.FC<Props> = ({diffs, onConfirm, onClose}) => {
+  const seed = useUIDSeed()
   const [pending, setPending] = React.useState(false)
   const handleConfirm = React.useCallback(async () => {
     setPending(true)
@@ -45,7 +47,7 @@ export const MaintenanceTabDiffDialog: React.FC<Props> = ({diffs, onConfirm, onC
           <Inline space={2}>
             <Button
               tone="primary"
-              padding={[2, 3]}
+              padding={[3, 4]}
               loading={pending}
               disabled={pending}
               onClick={handleConfirm}
@@ -62,51 +64,61 @@ export const MaintenanceTabDiffDialog: React.FC<Props> = ({diffs, onConfirm, onC
           <Text>{UiMessages.translationsMaintenance.diffOverview.description}</Text>
         </Box>
         <Stack space={4}>
-          {diffs.map((diff, index) => (
-            <Card key={`${diff.id}-${index}`} padding={4} radius={2} shadow={1}>
-              <Stack space={2}>
-                <Box>
-                  <Inline space={2}>
-                    {diff.op === 'add' && <Badge tone="positive">{diff.op}</Badge>}
-                    {diff.op === 'modify' && <Badge tone="caution">{diff.op}</Badge>}
-                    {diff.op === 'remove' && <Badge tone="critical">{diff.op}</Badge>}
-                    <Badge>{diff.type}</Badge>
-                    <Heading as="h4" size={1}>
-                      {diff.id}
-                    </Heading>
-                  </Inline>
-                </Box>
-                {diff.op === 'modify' && diff.patches.length && (
-                  <Stack space={2}>
-                    {diff.patches.map((patch, patchIndex) => (
-                      <Card
-                        key={`${diff.id}-${index}-${patchIndex}`}
-                        padding={2}
-                        radius={2}
-                        shadow={1}
-                        tone={
-                          {
-                            add: 'positive' as const,
-                            remove: 'critical' as const,
-                            replace: 'caution' as const,
-                          }[patch.op]
-                        }
-                      >
-                        {patch.op === 'add' && (
-                          <Stack space={2}>
-                            <Inline>
-                              <Badge>{patch.path.replace(/\//g, '.')}</Badge>
-                            </Inline>
-                            <Code>{JSON.stringify(patch.value)}</Code>
-                          </Stack>
-                        )}
-                      </Card>
-                    ))}
-                  </Stack>
-                )}
-              </Stack>
-            </Card>
-          ))}
+          {diffs.map((diffGroup) =>
+            diffGroup.map((diff) => (
+              <Card key={seed(diff)} padding={4} radius={2} shadow={1}>
+                <Stack space={2}>
+                  <Box>
+                    <Inline space={2}>
+                      {diff.op === 'add' && <Badge tone="positive">{diff.op}</Badge>}
+                      {diff.op === 'modify' && <Badge tone="caution">{diff.op}</Badge>}
+                      {diff.op === 'remove' && <Badge tone="critical">{diff.op}</Badge>}
+                      <Badge>{diff.type}</Badge>
+                      <Heading as="h4" size={1}>
+                        {diff.id}
+                      </Heading>
+                    </Inline>
+                  </Box>
+                  {diff.op === 'modify' && diff.patches.length && (
+                    <Stack space={2}>
+                      {diff.patches.map((patch) => (
+                        <Card
+                          key={seed(patch)}
+                          padding={2}
+                          radius={2}
+                          shadow={1}
+                          tone={
+                            {
+                              add: 'positive' as const,
+                              remove: 'critical' as const,
+                              replace: 'caution' as const,
+                            }[patch.op]
+                          }
+                        >
+                          {(patch.op === 'add' || patch.op === 'replace') && (
+                            <Stack space={2}>
+                              <Inline>
+                                <Badge>{patch.path.replace(/\//g, '.')}</Badge>
+                              </Inline>
+                              <Code>{JSON.stringify(patch.value, null, 2)}</Code>
+                            </Stack>
+                          )}
+
+                          {patch.op === 'remove' && (
+                            <Stack space={2}>
+                              <Inline>
+                                <Badge>{patch.path.replace(/\//g, '.')}</Badge>
+                              </Inline>
+                            </Stack>
+                          )}
+                        </Card>
+                      ))}
+                    </Stack>
+                  )}
+                </Stack>
+              </Card>
+            ))
+          )}
         </Stack>
       </Box>
     </Dialog>
