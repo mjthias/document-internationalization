@@ -1,3 +1,4 @@
+import chunk from 'just-split'
 import compact from 'just-compact'
 import {Ti18nDocument, Ti18nSchema, DocumentDiff} from '../../types'
 import {
@@ -40,5 +41,5 @@ export const fixLanguageFields = async (
       return null
     })
   )
-  return [diff]
+  return chunk(diff, 100)
 }

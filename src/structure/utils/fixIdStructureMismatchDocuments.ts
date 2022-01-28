@@ -35,22 +35,20 @@ export const fixIdStructureMismatchDocuments = async (
 
   // create new document ids
   const baseTranslationsMap = new Map<string, [string, string][]>()
-  const createNewDocumentDiffs = chunk(
-    documents.filter((d) => d._id !== getBaseIdFromId(d._id)),
-    100
-  ).reduce<DocumentDiff[]>((diffs, documentsChunk) => {
-    documentsChunk.forEach((d) => {
-      const baseId = getBaseIdFromId(d._id)
-      const lang = getLanguageFromId(d._id)
+  const createNewDocumentDiffs = documents
+    .filter((d) => d._id !== getBaseIdFromId(d._id))
+    .reduce<DocumentDiff[]>((diffs, doc) => {
+      const baseId = getBaseIdFromId(doc._id)
+      const lang = getLanguageFromId(doc._id)
       if (lang) {
         const newId = buildDocId(baseId, lang)
         diffs.push({
           op: 'add',
           id: newId,
-          type: d._type,
-          value: {...d, _id: newId, _type: d._type, [refsFieldName]: null},
+          type: doc._type,
+          value: {...doc, _id: newId, _type: doc._type, [refsFieldName]: null},
         })
-        diffs.push({op: 'remove', id: d._id, type: d._type})
+        diffs.push({op: 'remove', id: doc._id, type: doc._type})
 
         // patch base document with updated refs
         if (config.referenceBehavior !== ReferenceBehavior.DISABLED) {
@@ -59,9 +57,8 @@ export const fixIdStructureMismatchDocuments = async (
           baseTranslationsMap.set(baseId, map)
         }
       }
-    })
-    return diffs
-  }, [])
+      return diffs
+    }, [])
   baseTranslationsMap.forEach((value, baseId) => {
     createNewDocumentDiffs.push({
       op: 'modify',
@@ -80,5 +77,5 @@ export const fixIdStructureMismatchDocuments = async (
     })
   })
 
-  return [removeOldRefsDiffs, createNewDocumentDiffs]
+  return [...chunk(removeOldRefsDiffs, 100), ...chunk(createNewDocumentDiffs, 100)]
 }

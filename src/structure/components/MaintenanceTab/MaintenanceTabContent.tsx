@@ -35,7 +35,7 @@ export const MaintenanceTabContent = () => {
 
   const handleOpen = React.useCallback(() => setSelectedSchema(''), [selectedSchema])
 
-  const onFixIdStructureMismatchDocuments = React.useCallback(async () => {
+  const handleFixIdStructureMismatchDocuments = React.useCallback(async () => {
     setPending(true)
     const diffs = await fixIdStructureMismatchDocuments(selectedSchema, documents)
     setDiffRequests(diffs)
@@ -49,36 +49,40 @@ export const MaintenanceTabContent = () => {
     setPending(false)
   }, [selectedSchema, documents, setPending])
 
-  const onFixTranslationRefs = React.useCallback(async () => {
+  const handleFixTranslationRefs = React.useCallback(async () => {
     setPending(true)
     const diffs = await fixTranslationRefs(selectedSchema, baseDocuments, translatedDocuments)
     setDiffRequests(diffs)
     setPending(false)
   }, [selectedSchema, baseDocuments, translatedDocuments, setPending])
 
-  const onFixBaseDocumntRefs = React.useCallback(async () => {
+  const handleFixBaseDocumntRefs = React.useCallback(async () => {
     setPending(true)
-    await fixBaseDocumentRefs(selectedSchema, translatedDocuments)
-    await fetchInformation(selectedSchema)
-  }, [selectedSchema, translatedDocuments])
+    const diffs = await fixBaseDocumentRefs(selectedSchema, translatedDocuments)
+    setDiffRequests(diffs)
+    setPending(false)
+  }, [selectedSchema, translatedDocuments, setPending])
 
-  const onFixOrphanDocuments = React.useCallback(async () => {
+  const handleFixOrphanDocuments = React.useCallback(async () => {
     setPending(true)
-    await fixOrphanedDocuments(baseDocuments, translatedDocuments)
-    await fetchInformation(selectedSchema)
-  }, [selectedSchema, baseDocuments, translatedDocuments, fetchInformation])
+    const diffs = await fixOrphanedDocuments(baseDocuments, translatedDocuments)
+    setDiffRequests(diffs)
+    setPending(false)
+  }, [baseDocuments, translatedDocuments, setPending])
 
-  const onFixReferenceBehaviorMismatch = React.useCallback(async () => {
+  const handleFixReferenceBehaviorMismatch = React.useCallback(async () => {
     setPending(true)
-    await fixTranslationRefs(selectedSchema, baseDocuments, translatedDocuments)
-    await fetchInformation(selectedSchema)
-  }, [selectedSchema, baseDocuments, translatedDocuments])
+    const diffs = await fixTranslationRefs(selectedSchema, baseDocuments, translatedDocuments)
+    setDiffRequests(diffs)
+    setPending(false)
+  }, [selectedSchema, baseDocuments, translatedDocuments, setPending])
 
   const onFixBaseLanguageMismatch = React.useCallback(async () => {
     setPending(true)
-    await fixBaseLanguageMismatch(selectedSchema, baseDocuments)
-    await fetchInformation(selectedSchema)
-  }, [selectedSchema, baseDocuments, fetchInformation])
+    const diffs = await fixBaseLanguageMismatch(selectedSchema, baseDocuments)
+    setDiffRequests(diffs)
+    setPending(false)
+  }, [selectedSchema, baseDocuments, setPending])
 
   const handleDiffOverviewConfirm = React.useCallback(
     async (diffs: DocumentDiff[][]) => {
@@ -112,7 +116,7 @@ export const MaintenanceTabContent = () => {
                 pending={pending}
                 count={documentsSummaryInformation.idStructureMismatch.length}
                 labelName="idStructureMismatch"
-                onClick={onFixIdStructureMismatchDocuments}
+                onClick={handleFixIdStructureMismatchDocuments}
               />
               <MaintenanceTabResult
                 pending={pending}
@@ -124,25 +128,25 @@ export const MaintenanceTabContent = () => {
                 pending={pending}
                 count={documentsSummaryInformation.missingDocumentRefs.length}
                 labelName="missingDocumentRefs"
-                onClick={onFixTranslationRefs}
+                onClick={handleFixTranslationRefs}
               />
               <MaintenanceTabResult
                 pending={pending}
                 count={documentsSummaryInformation.missingBaseDocumentRefs.length}
                 labelName="missingBaseDocumentRefs"
-                onClick={onFixBaseDocumntRefs}
+                onClick={handleFixBaseDocumntRefs}
               />
               <MaintenanceTabResult
                 pending={pending}
                 count={documentsSummaryInformation.orphanDocuments.length}
                 labelName="orphanDocuments"
-                onClick={onFixOrphanDocuments}
+                onClick={handleFixOrphanDocuments}
               />
               <MaintenanceTabResult
                 pending={pending}
                 count={documentsSummaryInformation.referenceBehaviorMismatch.length}
                 labelName="referenceBehaviorMismatch"
-                onClick={onFixReferenceBehaviorMismatch}
+                onClick={handleFixReferenceBehaviorMismatch}
               />
               <MaintenanceTabResult
                 pending={pending}

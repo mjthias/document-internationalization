@@ -12,41 +12,38 @@ export const fixTranslationRefs = async (
   const config = getConfig(schema)
   const refsFieldName = config.fieldNames.references
 
-  return chunk(baseDocuments, 100).reduce<DocumentDiff[][]>((acc, documentsChunk) => {
-    const diffChunk = documentsChunk.map<DocumentDiff>((d) => {
-      let translatedRefs: ITranslationRef[] = []
-      const relevantTranslations = translatedDocuments.filter(
-        (dx) => getBaseIdFromId(dx._id) === d._id
+  const diffs = baseDocuments.map<DocumentDiff>((doc) => {
+    let translatedRefs: ITranslationRef[] = []
+    const relevantTranslations = translatedDocuments.filter(
+      (dx) => getBaseIdFromId(dx._id) === doc._id
+    )
+    if (config.referenceBehavior !== ReferenceBehavior.DISABLED) {
+      translatedRefs = _.compact(
+        relevantTranslations.map((translation) => {
+          const lang = getLanguageFromId(translation._id)
+          if (!lang) return null
+          return {
+            _key: lang,
+            ...createSanityReference(
+              translation._id,
+              config.referenceBehavior === ReferenceBehavior.WEAK
+            ),
+          }
+        }, {})
       )
-      if (config.referenceBehavior !== ReferenceBehavior.DISABLED) {
-        translatedRefs = _.compact(
-          relevantTranslations.map((doc) => {
-            const lang = getLanguageFromId(doc._id)
-            if (!lang) return null
-            return {
-              _key: lang,
-              ...createSanityReference(
-                doc._id,
-                config.referenceBehavior === ReferenceBehavior.WEAK
-              ),
-            }
-          }, {})
-        )
-      }
-      return {
-        op: 'modify',
-        id: d._id,
-        type: d._type,
-        patches: [
-          {
-            op: 'replace',
-            path: refsFieldName,
-            value: translatedRefs,
-          },
-        ],
-      }
-    })
-    acc.push(diffChunk)
-    return acc
+    }
+    return {
+      op: 'modify',
+      id: doc._id,
+      type: doc._type,
+      patches: [
+        {
+          op: 'replace',
+          path: refsFieldName,
+          value: translatedRefs,
+        },
+      ],
+    }
   }, [])
+  return chunk(diffs, 100)
 }

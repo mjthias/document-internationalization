@@ -1,15 +1,23 @@
-import {Ti18nDocument} from '../../types'
-import {getSanityClient} from '../../utils'
+import chunk from 'just-split'
+import compact from 'just-compact'
+import {DocumentDiff, Ti18nDocument} from '../../types'
 
 export const fixOrphanedDocuments = async (
   basedocuments: Ti18nDocument[],
   translatedDocuments: Ti18nDocument[]
-) => {
-  const sanityClient = getSanityClient()
-  await Promise.all(
-    translatedDocuments.map(async (d) => {
-      const base = basedocuments.find((doc) => d._id.startsWith(doc._id))
-      if (!base) await sanityClient.delete(d._id)
+): Promise<DocumentDiff[][]> => {
+  const diffs = compact(
+    translatedDocuments.map<DocumentDiff | null>((translation) => {
+      const base = basedocuments.find((doc) => translation._id.startsWith(doc._id))
+      if (!base) {
+        return {
+          op: 'remove',
+          id: translation._id,
+          type: translation._type,
+        }
+      }
+      return null
     })
   )
+  return chunk(diffs, 100)
 }
