@@ -27,8 +27,6 @@ export const getFlagCode = (code = ``): string => {
   switch (code.toLocaleLowerCase()) {
     case `en`:
       return `gb`
-    case `sq`:
-      return `al`
 
     default:
       return code
